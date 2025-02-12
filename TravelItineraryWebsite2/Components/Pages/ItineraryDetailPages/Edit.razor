@@ -1,0 +1,174 @@
+﻿@page "/itinerarydetails/edit"
+@using Microsoft.EntityFrameworkCore
+@using TravelItineraryWebsite2.Domain
+@inject IDbContextFactory<TravelItineraryWebsite2.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Edit</PageTitle>
+
+<h1>Edit</h1>
+
+<h2>ItineraryDetail</h2>
+<hr />
+@if (ItineraryDetail is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="ItineraryDetail" OnValidSubmit="UpdateItineraryDetail" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary role="alert"/>
+                <input type="hidden" name="ItineraryDetail.Id" value="@ItineraryDetail.Id" />
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name:</label>
+                    <InputText id="name" @bind-Value="ItineraryDetail.Name" class="form-control" />
+                    <ValidationMessage For="() => ItineraryDetail.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="itineraryid" class="form-label">ItineraryId:</label>
+                    <InputNumber id="itineraryid" @bind-Value="ItineraryDetail.ItineraryId" class="form-control" aria-required="true" />
+                    <ValidationMessage For="() => ItineraryDetail.ItineraryId" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="date" class="form-label">Date:</label>
+                    <InputDate id="date" @bind-Value="ItineraryDetail.Date" class="form-control" />
+                    <ValidationMessage For="() => ItineraryDetail.Date" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="duration" class="form-label">Duration:</label>
+                    @* <InputText id="duration" @bind-Value="ItineraryDetail.Duration" class="form-control" />  *@
+                    <InputDate Type="InputDateType.Time" @bind-Value="ItineraryDetail.Duration" />
+                    <ValidationMessage For="() => ItineraryDetail.Duration" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="arrivaltime" class="form-label">ArrivalTime:</label>
+                    <InputDate id="arrivaltime" @bind-Value="ItineraryDetail.ArrivalTime" class="form-control" />
+                    <ValidationMessage For="() => ItineraryDetail.ArrivalTime" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="category" class="form-label">Category:</label>
+                    @* <InputText id="category" @bind-Value="ItineraryDetail.Category" class="form-control" />  *@
+                    <InputSelect @bind-Value="ItineraryDetail.Category">
+                        @foreach (var Category in Enum.GetValues(typeof(DetailCategory)))
+                        {
+                            <option value="@Category">@Category</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => ItineraryDetail.Category" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description:</label>
+                    <InputText id="description" @bind-Value="ItineraryDetail.Description" class="form-control" />
+                    <ValidationMessage For="() => ItineraryDetail.Description" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="activity" class="form-label">Activity:</label>
+                    <InputText id="activity" @bind-Value="ItineraryDetail.Activity" class="form-control" />
+                    <ValidationMessage For="() => ItineraryDetail.Activity" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="locationid" class="form-label">LocationId:</label>
+                    <InputNumber id="locationid" @bind-Value="ItineraryDetail.LocationId" class="form-control" />
+                    <ValidationMessage For="() => ItineraryDetail.LocationId" class="text-danger" />
+                </div>
+                <div class="mb-3" hidden>
+                    <label for="datecreated" class="form-label">DateCreated:</label>
+                    <InputDate id="datecreated" @bind-Value="ItineraryDetail.DateCreated" class="form-control" />
+                    <ValidationMessage For="() => ItineraryDetail.DateCreated" class="text-danger" />
+                </div>
+                <div class="mb-3" hidden>
+                    <label for="dateupdated" class="form-label">DateUpdated:</label>
+                    <InputDate id="dateupdated" @bind-Value="ItineraryDetail.DateUpdated" class="form-control" />
+                    <ValidationMessage For="() => ItineraryDetail.DateUpdated" class="text-danger" />
+                </div>
+                <div class="mb-3" hidden>
+                    <label for="createdby" class="form-label">CreatedBy:</label>
+                    <InputText id="createdby" @bind-Value="ItineraryDetail.CreatedBy" class="form-control" />
+                    <ValidationMessage For="() => ItineraryDetail.CreatedBy" class="text-danger" />
+                </div>
+                <div class="mb-3" hidden>
+                    <label for="updatedby" class="form-label">UpdatedBy:</label>
+                    <InputText id="updatedby" @bind-Value="ItineraryDetail.UpdatedBy" class="form-control" />
+                    <ValidationMessage For="() => ItineraryDetail.UpdatedBy" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <a href="/itinerarydetails">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    private ItineraryDetail? ItineraryDetail { get; set; }
+
+    //Create userId string to store the user id, default value is "System".
+    private string userId = "System";
+    //Inject the AuthenticationStateProvider to get the user id.
+    @inject AuthenticationStateProvider authenticationStateProvider
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        ItineraryDetail ??= await context.ItineraryDetail.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (ItineraryDetail is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+
+        var authState = await authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        var userIdClaim = user.FindFirst("userId");
+
+        if (userIdClaim != null)
+        {
+            userId = userIdClaim.Value;
+        }
+    }
+
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task UpdateItineraryDetail()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Attach(ItineraryDetail!).State = EntityState.Modified;
+
+        ItineraryDetail.DateUpdated = DateTime.Now;
+        ItineraryDetail.UpdatedBy = userId;
+
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!ItineraryDetailExists(ItineraryDetail!.Id))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/itinerarydetails");
+    }
+
+    private bool ItineraryDetailExists(int id)
+    {
+        using var context = DbFactory.CreateDbContext();
+        return context.ItineraryDetail.Any(e => e.Id == id);
+    }
+}

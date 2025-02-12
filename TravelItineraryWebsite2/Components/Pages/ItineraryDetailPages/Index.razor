@@ -1,0 +1,51 @@
+﻿@page "/itinerarydetails"
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using TravelItineraryWebsite2.Domain
+@using TravelItineraryWebsite2.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<TravelItineraryWebsite2.Data.ApplicationDbContext> DbFactory
+
+@attribute [Authorize]
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="itinerarydetails/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.ItineraryDetail">
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Name" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.ItineraryId" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Date" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Duration" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.ArrivalTime" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Category" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Description" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Activity" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.LocationId" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.DateCreated" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.DateUpdated" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.CreatedBy" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.UpdatedBy" />
+
+    <TemplateColumn Context="itinerarydetail">
+        <a href="@($"itinerarydetails/edit?id={itinerarydetail.Id}")">Edit</a> |
+        <a href="@($"itinerarydetails/details?id={itinerarydetail.Id}")">Details</a> |
+        <a href="@($"itinerarydetails/delete?id={itinerarydetail.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

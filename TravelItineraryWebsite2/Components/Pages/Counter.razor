@@ -1,0 +1,40 @@
+﻿@page "/counter"
+@rendermode InteractiveServer
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+
+    public class PlaceResult
+    {
+        public string? DisplayName { get; set; }
+        public string? Address { get; set; }
+        public Location? Location { get; set; }
+    }
+
+    public class Location
+    {
+        public double Lat { get; set; }
+        public double Lng { get; set; }
+    }
+
+    private void HandlePlaceSelection(PlaceResult place)
+    {
+        // Handle the selected place data
+        Console.WriteLine($"Selected: {place.DisplayName}");
+        Console.WriteLine($"Address: {place.Address}");
+        Console.WriteLine($"Location: {place.Location.Lat}, {place.Location.Lng}");
+    }
+}

@@ -1,0 +1,95 @@
+﻿@page "/locations/create"
+@using Microsoft.EntityFrameworkCore
+@using TravelItineraryWebsite2.Domain
+@inject IDbContextFactory<TravelItineraryWebsite2.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create Location</PageTitle>
+
+<h1>Create Location</h1>
+<hr />
+
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Location" OnValidSubmit="AddLocation" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+
+            <div class="mb-3">
+                <label for="address" class="form-label">Address:</label>
+                <InputText id="address" @bind-Value="Location.Address" class="form-control" />
+                <ValidationMessage For="() => Location.Address" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label for="placeid" class="form-label">PlaceId:</label>
+                <InputText id="placeid" @bind-Value="Location.PlaceId" class="form-control" />
+                <ValidationMessage For="() => Location.PlaceId" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label for="lat" class="form-label">Lat:</label>
+                <InputNumber id="lat" @bind-Value="Location.Lat" class="form-control" />
+                <ValidationMessage For="() => Location.Lat" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label for="lng" class="form-label">Lng:</label>
+                <InputNumber id="lng" @bind-Value="Location.Lng" class="form-control" />
+                <ValidationMessage For="() => Location.Lng" class="text-danger" />
+            </div>
+
+            <!-- Dropdown to select an Itinerary -->
+            <div class="mb-3">
+                <label for="itinerary" class="form-label">Itinerary:</label>
+                <InputSelect id="itinerary" @bind-Value="Location.ItineraryId" class="form-control">
+                    <option value="0">-- Select Itinerary --</option>
+                    @foreach (var itinerary in itineraries)
+                    {
+                        <option value="@itinerary.Id">@itinerary.Name</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => Location.ItineraryId" class="text-danger" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/locations">Back to List</a>
+</div>
+
+@code {
+    private Location _location = new();
+    [SupplyParameterFromForm]
+    private Location Location
+    {
+        get => _location;
+        set
+        {
+            if (value != null)
+            {
+                _location = value;
+            }
+        }
+    }
+
+    private List<Itinerary> itineraries = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Load itineraries from the database
+        using var context = DbFactory.CreateDbContext();
+        itineraries = await context.Itinerary.ToListAsync();
+    }
+
+    private async Task AddLocation()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Location.Add(Location);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/locations");
+    }
+}

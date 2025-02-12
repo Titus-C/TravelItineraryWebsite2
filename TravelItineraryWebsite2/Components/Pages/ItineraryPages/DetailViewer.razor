@@ -1,0 +1,97 @@
+﻿@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using TravelItineraryWebsite2.Domain
+@using TravelItineraryWebsite2.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<TravelItineraryWebsite2.Data.ApplicationDbContext> DbFactory
+
+<h1>Itinerary Details</h1>
+
+
+@* <QuickGrid TGridItem="ItineraryDetail" Class="table" Items="@itineraryDetails.AsQueryable()">
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Name" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.ItineraryId" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Date" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Duration" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.ArrivalTime" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Category" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Description" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Activity" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.LocationId" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.DateCreated" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.DateUpdated" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.CreatedBy" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.UpdatedBy" />
+
+    <TemplateColumn Context="itinerarydetail">
+        <a href="@($"itinerarydetails/edit?id={itinerarydetail.Id}")">Edit</a> |
+        <a href="@($"itinerarydetails/details?id={itinerarydetail.Id}")">Details</a> |
+        <a href="@($"itinerarydetails/delete?id={itinerarydetail.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid> 
+*@
+
+<QuickGrid TGridItem="ItineraryDetail" Class="table" Items="@itineraryDetails.AsQueryable()">
+    <!-- Basic Fields -->
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Name" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Date" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.EndDate" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Duration" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.ArrivalTime" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.ComputedArrivalTime" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Category" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Description" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Activity" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.Cost" />
+
+    <!-- Display Departure Location from navigation property -->
+    <TemplateColumn Title="Departure Location" Context="detail">
+        @if (detail.DepartureLocation != null)
+        {
+            @detail.DepartureLocation.Address
+        }
+    </TemplateColumn>
+
+    <!-- Display Arrival Location from navigation property -->
+    <TemplateColumn Title="Arrival Location" Context="detail">
+        @if (detail.ArrivalLocation != null)
+        {
+            @detail.ArrivalLocation.Address
+        }
+    </TemplateColumn>
+
+    <!-- Optionally, show LocationId for non-transport details -->
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.LocationId" />
+
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.DateCreated" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.DateUpdated" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.CreatedBy" />
+    <PropertyColumn Property="itinerarydetail => itinerarydetail.UpdatedBy" />
+
+    <TemplateColumn Context="itinerarydetail">
+        <a href="@($"itinerarydetails/edit?id={itinerarydetail.Id}")">Edit</a> |
+        <a href="@($"itinerarydetails/details?id={itinerarydetail.Id}")">Details</a> |
+        <a href="@($"itinerarydetails/delete?id={itinerarydetail.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    [Parameter]
+    public int ItineraryId { get; set; }
+
+    private ApplicationDbContext context = default!;
+
+    private List<ItineraryDetail> itineraryDetails = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = DbFactory.CreateDbContext();
+
+        // Query the database for details matching the ItineraryId.
+        itineraryDetails = await context.ItineraryDetail
+            .Where(detail => detail.ItineraryId == ItineraryId)
+            .ToListAsync();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

@@ -1,0 +1,25 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="bootstrap/bootstrap.min.css" />
+    <link rel="stylesheet" href="app.css" />
+    <link rel="stylesheet" href="TravelItineraryWebsite2.styles.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <RadzenTheme Theme="material" @rendermode="InteractiveServer" />
+    <HeadOutlet />
+</head>
+
+<body>
+    <Routes />
+    <script src="_framework/blazor.web.js"></script>
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js?v=@(typeof(Radzen.Colors).Assembly.GetName().Version)"></script>
+    @* <script async
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBDeIIqXuWMkk1iXCEYnzyU_cCru1gKuQ4&loading=async&libraries=places&callback=initMap">
+    </script> *@
+</body>
+
+</html>

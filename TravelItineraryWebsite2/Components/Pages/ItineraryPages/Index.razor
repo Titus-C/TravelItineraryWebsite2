@@ -1,0 +1,68 @@
+﻿@page "/itineraries"
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using TravelItineraryWebsite2.Domain
+@using TravelItineraryWebsite2.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<TravelItineraryWebsite2.Data.ApplicationDbContext> DbFactory
+@inject IAuthorizationService AuthorizationService
+@rendermode InteractiveServer
+
+@attribute [Authorize]
+
+<PageTitle>Itineraries</PageTitle>
+
+<h1>Itineraries</h1>
+
+<p>
+    <a class="btn btn-primary" href="itineraries/create">Create New</a>
+</p>
+
+<h3>View itinerary details by clicking "Details"!</h3>
+
+<QuickGrid TGridItem="Itinerary" Class="table" Items="@authorizedItineraries.AsQueryable()">
+    <PropertyColumn Property="itinerary => itinerary.Name" Sortable="true" />
+    <PropertyColumn Property="itinerary => itinerary.Description" Sortable="true" />
+    <PropertyColumn Title="Start Date" Property="itinerary => itinerary.StartDate" Sortable="true" Format="dddd, dd MMMM yyyy" />
+    <PropertyColumn Title="End Date" Property="itinerary => itinerary.EndDate" Sortable="true" Format="dddd, dd MMMM yyyy" />
+    <PropertyColumn Title="Date Created" Property="itinerary => itinerary.DateCreated" />
+    @* <PropertyColumn Title="Date Updated" Property="itinerary => itinerary.DateUpdated" /> *@
+    <PropertyColumn Title="Created By" Property="itinerary => itinerary.CreatedByName" />
+    @* <PropertyColumn Title="Updated By" Property="itinerary => itinerary.UpdatedByName" /> *@
+    
+    <TemplateColumn Context="itinerary">
+        <a href="@($"itineraries/edit?id={itinerary.Id}")">Edit</a> |
+        <a href="@($"itineraries/details?id={itinerary.Id}")">Details</a> |
+        <a href="@($"itineraries/delete?id={itinerary.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private List<Itinerary> authorizedItineraries = new();
+    private ApplicationDbContext context = default!;
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        context = DbFactory.CreateDbContext();
+
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+
+        var allItineraries = await context.Itinerary
+            .Include(i => i.Users)
+            .ToListAsync();
+
+        foreach (var itinerary in allItineraries)
+        {
+            var authResult = await AuthorizationService.AuthorizeAsync(user, itinerary, "ItineraryViewPolicy");
+            if (authResult.Succeeded)
+            {
+                authorizedItineraries.Add(itinerary);
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}
